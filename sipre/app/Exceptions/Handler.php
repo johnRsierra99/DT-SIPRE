@@ -27,4 +27,24 @@ class Handler extends ExceptionHandler
             //
         });
     }
+
+    public function render($request, Throwable $exception)
+    {
+        if ($exception instanceof \Illuminate\Database\QueryException) {
+            if ($exception->errorInfo[1] == 1062) {
+                if (strpos($exception->errorInfo[2], 'personas_id_unique') !== false) {
+                    $errorMessage = "Ya existe una persona con ese ID";
+                } elseif (strpos($exception->errorInfo[2], 'personas_correo_unique') !== false) {
+                    $errorMessage = "Ya existe una persona con ese correo electrónico";
+                } else {
+                    $errorMessage = "Error de integridad de datos";
+                }
+                return response()->view('error', ['errorMessage' => $errorMessage]);
+            }
+        }
+
+        return parent::render($request, $exception);
+    }
+
+
 }
